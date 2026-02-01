@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { getApiHeaders, API_URL } from '../utils/apiConfig'
+import PaymentModal from './PaymentModal'
 
 function Generator() {
   const [formData, setFormData] = useState({
@@ -20,30 +22,36 @@ function Generator() {
   const [analytics, setAnalytics] = useState(null)
   const [languages, setLanguages] = useState([])
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const jobTitleRef = useRef(null)
 
   useEffect(() => {
     fetchAnalytics()
     fetchLanguages()
-    // Check if user is in demo mode (no auth token)
-    const token = localStorage.getItem('authToken')
-    setIsDemoMode(!token)
+    // Check if user is in demo mode (no authentication)
+    // We'll determine this based on the analytics response
     jobTitleRef.current?.focus()
   }, [])
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get('http://localhost:5026/analytics')
+      const response = await axios.get(`${API_URL}/analytics`, {
+        withCredentials: true
+      })
       setAnalytics(response.data)
+      setIsDemoMode(false)
     } catch (err) {
       console.error('Error fetching analytics:', err)
+      setIsDemoMode(true)
     }
   }
 
   const fetchLanguages = async () => {
     try {
-      const response = await axios.get('http://localhost:5026/languages')
+      const response = await axios.get(`${API_URL}/languages`, {
+        withCredentials: true
+      })
       setLanguages(response.data)
     } catch (err) {
       console.error('Error fetching languages:', err)
@@ -77,19 +85,19 @@ function Generator() {
       return
     }
 
+    // Authentication is handled by cookies, no need to check localStorage
+
     setLoading(true)
     setError('')
 
     try {
       const endpoint = selectedLanguage === 'en' ? '/generate' : `/generate/${selectedLanguage}`
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await axios.post(`${API_URL}${endpoint}`, trimmedData, {
         timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        withCredentials: true,
+        headers: getApiHeaders(true)
       })
-      
+
       if (response.data && response.data.coverLetter) {
         setCoverLetter(response.data.coverLetter)
         fetchAnalytics() // Refresh analytics after generation
@@ -104,12 +112,18 @@ function Generator() {
         setError('Monthly limit exceeded. Please upgrade to Pro for unlimited cover letters.')
       } else if (err.code === 'ECONNABORTED') {
         setError('Request timed out. Please try again.')
+      } else if (err.response?.status === 401) {
+        setError('Authentication required. Please log in again.')
       } else if (err.response?.status === 404) {
         setError('Backend service not found. Please ensure the backend is running.')
+      } else if (err.response?.status === 503) {
+        setError('AI service temporarily unavailable. Please try again later.')
+      } else if (err.response?.status === 429) {
+        setError('Rate limit exceeded. Please wait a moment and try again.')
       } else if (err.response?.status >= 500) {
         setError('Server error. Please try again later.')
       } else {
-        setError(err.response?.data?.message || 'Failed to generate cover letter. Please try again.')
+        setError(err.response?.data?.error || err.response?.data?.message || 'Failed to generate cover letter. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -163,35 +177,39 @@ function Generator() {
     document.body.removeChild(textArea)
   }
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!coverLetter) return
 
-    const { jsPDF } = require('jspdf')
-    const doc = new jsPDF()
-    
-    const splitText = doc.splitTextToSize(coverLetter, 180)
-    doc.setFontSize(12)
-    doc.text(splitText, 15, 20)
-    
-    doc.save('cover-letter.pdf')
-    showToastMessage('PDF downloaded successfully!', 'success')
+    try {
+      // Use dynamic import for ES modules
+      const { jsPDF } = await import('jspdf')
+      const doc = new jsPDF()
+
+      const splitText = doc.splitTextToSize(coverLetter, 180)
+      doc.setFontSize(12)
+      doc.text(splitText, 15, 20)
+
+      doc.save('cover-letter.pdf')
+      showToastMessage('PDF downloaded successfully!', 'success')
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      showToastMessage('Failed to generate PDF', 'error')
+    }
   }
 
   const handleUpgrade = () => {
-    // Redirect to pricing or upgrade page
-    window.open('/#pricing', '_blank')
     setShowUpgradeModal(false)
+    setShowPaymentModal(true)
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Toast Notification */}
       {showToast && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
-          toastType === 'success' 
-            ? 'bg-green-500 text-white' 
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${toastType === 'success'
+            ? 'bg-green-500 text-white'
             : 'bg-red-500 text-white'
-        }`} role="alert" aria-live="assertive">
+          }`} role="alert" aria-live="assertive">
           {toastMessage}
         </div>
       )}
@@ -223,6 +241,13 @@ function Generator() {
           </div>
         </div>
       )}
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        plan="monthly"
+      />
 
       {/* Navigation */}
       <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">

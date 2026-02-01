@@ -1,207 +1,186 @@
-# CoverLetterGen - AI-Powered Cover Letter Generator
+# Cover Letter Generator
 
-A full-stack SaaS application that generates professional cover letters for remote jobs using GPT-4 technology.
+A full-stack web application for generating professional cover letters using AI. Built with ASP.NET Core backend and React frontend.
 
-## 🚀 Features
+## Features
 
-- **AI-Powered Generation**: Uses OpenAI GPT-4 for professional cover letter creation
-- **Instant Results**: Generate cover letters in seconds
-- **Customizable**: Tailored to your experience and job requirements
-- **Export Options**: Copy to clipboard or download as PDF
-- **Responsive Design**: Works on desktop and mobile devices
-- **Monetization Ready**: Gumroad integration for premium features
+- 🤖 AI-powered cover letter generation using OpenAI GPT-4o-mini
+- 🔐 Secure cookie-based authentication
+- 📊 Analytics dashboard with usage tracking
+- 📧 Email sharing functionality
+- 📄 PDF download capability
+- 🌐 Multi-language support
+- 💳 Pro subscription management
+- 📱 Responsive design
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
-- **ASP.NET Core 8** - Web API
-- **OpenAI .NET SDK** - GPT-4 integration
-- **CORS** - Cross-origin resource sharing
-- **Logging** - Comprehensive error handling
+- **ASP.NET Core 8.0** - Web API framework
+- **Entity Framework Core** - ORM with SQLite database
+- **Serilog** - Structured logging
+- **OpenAI API** - AI-powered content generation
+- **Cookie Authentication** - Secure session management
 
 ### Frontend
-- **React 18** - User interface
+- **React 18** - UI framework
 - **Vite** - Build tool and dev server
-- **Tailwind CSS** - Styling
+- **Tailwind CSS** - Styling framework
 - **Axios** - HTTP client
-- **jsPDF** - PDF generation
+- **React Router** - Client-side routing
 
-## 📦 Installation
+## Quick Start
 
 ### Prerequisites
-- .NET 8 SDK
+- .NET 8.0 SDK
 - Node.js 18+ and npm
-- OpenAI API key with sufficient quota
+- OpenAI API key
 
 ### Backend Setup
 
-1. Navigate to the backend directory:
-```bash
-cd backend
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Sammalik8884/CoverLetterGen.git
+   cd CoverLetterGen
+   ```
 
-2. Install dependencies:
-```bash
-dotnet restore
-```
+2. **Set up environment variables**
+   ```bash
+   # For development, set your OpenAI API key
+   set OPENAI_API_KEY=your-actual-openai-api-key-here
+   ```
 
-3. Update the OpenAI API key in `appsettings.json`:
-```json
-{
-  "OpenAI": {
-    "ApiKey": "your-openai-api-key-here"
-  }
-}
-```
-
-4. Run the backend:
-```bash
-dotnet run
-```
-
-The backend will be available at `http://localhost:5026`
+3. **Run the backend**
+   ```bash
+   cd backend
+   dotnet restore
+   dotnet run
+   ```
+   The API will be available at `http://localhost:5026`
 
 ### Frontend Setup
 
-1. Navigate to the frontend directory:
+1. **Install dependencies**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+   The frontend will be available at `http://localhost:5173`
+
+## Environment Variables
+
+### Backend (.env or system environment variables)
+```env
+OPENAI_API_KEY=your-openai-api-key-here
+```
+
+### Frontend (.env)
+```env
+VITE_API_URL=http://localhost:5026
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
+- `GET /auth/validate` - Validate authentication
+
+### Cover Letters
+- `POST /generate` - Generate cover letter
+- `POST /generate/{language}` - Generate cover letter in specific language
+- `GET /coverletters` - Get user's cover letters
+- `DELETE /coverletters/{id}` - Delete cover letter
+- `GET /coverletters/{id}/download` - Download as PDF
+- `POST /coverletters/{id}/share` - Share via email
+
+### Analytics
+- `GET /analytics` - Get user analytics and usage stats
+
+### Languages
+- `GET /languages` - Get supported languages
+
+## Security Features
+
+- **Cookie-based Authentication** - Secure session management
+- **CSRF Protection** - Cross-site request forgery prevention
+- **CORS Configuration** - Controlled cross-origin access
+- **Input Validation** - Server-side validation
+- **Error Handling** - Comprehensive error management
+
+## Database Schema
+
+The application uses SQLite with Entity Framework Core. Key entities:
+
+- **Users** - User accounts and authentication
+- **CoverLetters** - Generated cover letters
+- **Payments** - Subscription and payment tracking
+
+## Development
+
+### Running Tests
 ```bash
+cd backend
+dotnet test
+```
+
+### Database Migrations
+```bash
+cd backend
+dotnet ef migrations add MigrationName
+dotnet ef database update
+```
+
+### Building for Production
+```bash
+# Backend
+cd backend
+dotnet publish -c Release
+
+# Frontend
 cd frontend
+npm run build
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Deployment
 
-3. Start the development server:
-```bash
-npm run dev
-```
+### Backend Deployment
+1. Set production environment variables
+2. Build the application: `dotnet publish -c Release`
+3. Deploy to your hosting platform (Azure, AWS, etc.)
 
-The frontend will be available at `http://localhost:5173`
+### Frontend Deployment
+1. Build the application: `npm run build`
+2. Deploy the `dist` folder to your hosting platform (Vercel, Netlify, etc.)
 
-## 🔧 Configuration
-
-### Backend Configuration
-
-The backend is configured in `backend/appsettings.json`:
-
-```json
-{
-  "OpenAI": {
-    "ApiKey": "your-openai-api-key"
-  },
-  "CORS": {
-    "AllowedOrigins": [
-      "http://localhost:5173",
-      "https://your-vercel-domain.vercel.app"
-    ]
-  }
-}
-```
-
-### Frontend Configuration
-
-The frontend connects to the backend API. Update the API URL in `frontend/src/App.jsx` if needed:
-
-```javascript
-const response = await axios.post('http://localhost:5026/generate', formData)
-```
-
-## 🚀 Deployment
-
-### Backend Deployment (Render)
-
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Set build command: `dotnet build`
-4. Set start command: `dotnet run`
-5. Add environment variables:
-   - `OpenAI__ApiKey`: Your OpenAI API key
-
-### Frontend Deployment (Vercel)
-
-1. Connect your GitHub repository to Vercel
-2. Set build command: `npm run build`
-3. Set output directory: `dist`
-4. Deploy
-
-## 💰 Monetization
-
-The application includes Gumroad integration for premium features:
-
-- **Free Tier**: Watermarked cover letters
-- **Premium Tier**: Remove watermark, unlimited generations
-
-Update the Gumroad link in `frontend/src/App.jsx`:
-```javascript
-href="https://gumroad.com/l/your-product-id?pro=true"
-```
-
-## 📁 Project Structure
-
-```
-CoverLetterGen/
-├── backend/                 # ASP.NET Core Web API
-│   ├── Program.cs          # Main application entry point
-│   ├── GenerateRequest.cs  # Request model
-│   ├── appsettings.json   # Configuration
-│   └── backend.csproj     # Project file
-├── frontend/               # React application
-│   ├── src/
-│   │   ├── App.jsx        # Main component
-│   │   ├── main.jsx       # Entry point
-│   │   └── index.css      # Tailwind CSS
-│   ├── package.json       # Dependencies
-│   └── tailwind.config.js # Tailwind configuration
-└── README.md              # This file
-```
-
-## 🔌 API Endpoints
-
-### POST /generate
-
-Generates a cover letter based on provided information.
-
-**Request Body:**
-```json
-{
-  "jobTitle": "Frontend Developer",
-  "companyName": "Acme Corp",
-  "userInfo": "3 years React experience, remote work background"
-}
-```
-
-**Response:**
-```json
-{
-  "coverLetter": "Dear Hiring Manager at Acme Corp..."
-}
-```
-
-## 🎯 Usage
-
-1. Fill in the job title, company name, and your experience
-2. Click "Generate Cover Letter"
-3. Review the generated cover letter
-4. Copy to clipboard or download as PDF
-5. Upgrade to remove watermark (optional)
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Submit a pull request
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🆘 Support
+## Support
 
-For support, please open an issue on GitHub or contact the development team.
+For support and questions, please open an issue on GitHub.
 
----
+## Changelog
 
-**Built with ❤️ for remote job seekers everywhere** 
+### Latest Version
+- ✅ Complete migration to cookie-based authentication
+- ✅ Fixed analytics display with proper data mapping
+- ✅ Updated OpenAI model to gpt-4o-mini
+- ✅ Improved error handling with detailed messages
+- ✅ Enhanced security with comprehensive .gitignore
+- ✅ All features working: cover letter generation, analytics, authentication 

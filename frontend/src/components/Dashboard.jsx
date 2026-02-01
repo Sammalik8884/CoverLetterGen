@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useContext } from 'react'
+import { Link, Navigate } from 'react-router-dom'
 import axios from 'axios'
+import { getApiHeaders, API_URL } from '../utils/apiConfig'
+import { AuthContext } from '../contexts/AuthContext'
+import PaymentModal from './PaymentModal'
 
 function Dashboard() {
+  const { isAuthenticated, user, loading: authLoading } = useContext(AuthContext)
   const [coverLetters, setCoverLetters] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -10,28 +14,49 @@ function Dashboard() {
   const [showModal, setShowModal] = useState(false)
   const [analytics, setAnalytics] = useState(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
 
   useEffect(() => {
-    fetchCoverLetters()
-    fetchAnalytics()
-    // Check if user is in demo mode (no auth token)
-    const token = localStorage.getItem('authToken')
-    setIsDemoMode(!token)
-  }, [])
+    if (!authLoading) {
+      if (isAuthenticated) {
+        fetchCoverLetters()
+        fetchAnalytics()
+      } else {
+        setLoading(false)
+        setIsDemoMode(true)
+      }
+    }
+  }, [isAuthenticated, authLoading])
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+
+  // Redirect to login if not authenticated
+  if (!authLoading && !isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
 
   const fetchCoverLetters = async () => {
     try {
-      const response = await axios.get(`${API_URL}/coverletters`)
+      const response = await axios.get(`${API_URL}/coverletters`, { 
+        withCredentials: true,
+        headers: getApiHeaders() 
+      })
       setCoverLetters(response.data)
+      setIsDemoMode(false)
+      setError('') // Clear any previous errors
     } catch (err) {
-      setError('Failed to load cover letters')
-      console.error('Error fetching cover letters:', err)
+      if (err.response?.status === 401) {
+        setError('Please log in to view your cover letters')
+        setIsDemoMode(true)
+      } else {
+        setError('Failed to load cover letters')
+        console.error('Error fetching cover letters:', err)
+        setIsDemoMode(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -39,7 +64,10 @@ function Dashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/analytics`)
+      const response = await axios.get(`${API_URL}/analytics`, { 
+        withCredentials: true,
+        headers: getApiHeaders() 
+      })
       setAnalytics(response.data)
     } catch (err) {
       console.error('Error fetching analytics:', err)
@@ -50,7 +78,10 @@ function Dashboard() {
     if (!confirm('Are you sure you want to delete this cover letter?')) return
 
     try {
-      await axios.delete(`${API_URL}/coverletters/${id}`)
+      await axios.delete(`${API_URL}/coverletters/${id}`, { 
+        withCredentials: true,
+        headers: getApiHeaders() 
+      })
       setCoverLetters(coverLetters.filter(letter => letter.id !== id))
       fetchAnalytics() // Refresh analytics
       showToastMessage('Cover letter deleted successfully!', 'success')
@@ -62,28 +93,60 @@ function Dashboard() {
 
   const downloadPDF = async (id) => {
     try {
+      // Show loading state
+      showToastMessage('Generating PDF...', 'info')
+      
       const response = await axios.get(`${API_URL}/coverletters/${id}/pdf`, {
-        responseType: 'blob'
+        withCredentials: true,
+        headers: getApiHeaders(),
+        responseType: 'blob',
+        timeout: 30000 // 30 second timeout for PDF generation
       })
       
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+      // Check if response is actually a PDF
+      const contentType = response.headers['content-type']
+      if (!contentType || !contentType.includes('application/pdf')) {
+        throw new Error('Invalid response format - expected PDF')
+      }
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.setAttribute('download', `cover-letter-${id}.pdf`)
+      link.style.display = 'none'
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
+      
       showToastMessage('PDF downloaded successfully!', 'success')
     } catch (err) {
-      setError('Failed to download PDF')
       console.error('Error downloading PDF:', err)
+      
+      let errorMessage = 'Failed to download PDF'
+      if (err.response?.status === 404) {
+        errorMessage = 'Cover letter not found'
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Authentication required'
+      } else if (err.code === 'ECONNABORTED') {
+        errorMessage = 'PDF generation timed out. Please try again.'
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.'
+      }
+      
+      setError(errorMessage)
+      showToastMessage(errorMessage, 'error')
     }
   }
 
   const shareCoverLetter = async (id) => {
     try {
-      const response = await axios.post(`${API_URL}/coverletters/${id}/share`)
+      const response = await axios.post(`${API_URL}/coverletters/${id}/share`, {}, { 
+        withCredentials: true,
+        headers: getApiHeaders() 
+      })
       const shareUrl = response.data.shareUrl
       
       // Copy to clipboard
@@ -102,6 +165,9 @@ function Dashboard() {
 
       await axios.post(`${API_URL}/coverletters/${id}/send-email`, {
         recipientEmail
+      }, { 
+        withCredentials: true,
+        headers: getApiHeaders() 
       })
       showToastMessage('Cover letter sent successfully!', 'success')
     } catch (err) {
@@ -118,9 +184,8 @@ function Dashboard() {
   }
 
   const handleUpgrade = () => {
-    // Redirect to pricing or upgrade page
-    window.open('/#pricing', '_blank')
     setShowUpgradeModal(false)
+    setShowPaymentModal(true)
   }
 
   const formatDate = (dateString) => {
@@ -197,6 +262,13 @@ function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Payment Modal */}
+      <PaymentModal 
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        plan="monthly"
+      />
 
       {/* Navigation */}
       <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -319,7 +391,17 @@ function Dashboard() {
 
           {error && (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800" role="alert">
-              <p className="text-red-600 dark:text-red-400">{error}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+                {error.includes('Please log in') && (
+                  <Link
+                    to="/login"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm transition-colors"
+                  >
+                    Log In
+                  </Link>
+                )}
+              </div>
             </div>
           )}
 

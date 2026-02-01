@@ -1,0 +1,13 @@
+@echo off
+echo Starting CoverLetterGen Services...
+
+echo Starting Backend...
+start "Backend" cmd /k "cd /d G:\Projects\CoverLetterGen\backend && dotnet run --project backend.csproj --urls http://localhost:5026"
+
+echo Starting Frontend...
+start "Frontend" cmd /k "cd /d G:\Projects\CoverLetterGen\frontend && npm run dev"
+
+echo Services are starting...
+echo Backend will be available at: http://localhost:5026
+echo Frontend will be available at: http://localhost:5173
+pause 

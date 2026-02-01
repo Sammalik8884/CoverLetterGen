@@ -13,103 +13,137 @@ namespace CoverLetterGen.Services
 
     public class EmailService : IEmailService
     {
-        private readonly ISendGridClient _sendGridClient;
+        private readonly ISendGridClient? _sendGridClient;
         private readonly IConfiguration _configuration;
         private readonly string _fromEmail;
         private readonly string _fromName;
 
         public EmailService(IConfiguration configuration)
+{
+    var apiKey = configuration["SendGrid:ApiKey"] ?? Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+    
+    if (string.IsNullOrEmpty(apiKey))
+    {
+        if (environment == "Development")
         {
-            var apiKey = configuration["SendGrid:ApiKey"] ?? Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                throw new Exception("SendGrid API key not configured");
-            }
-            
-            _sendGridClient = new SendGridClient(apiKey);
-            _configuration = configuration;
-            _fromEmail = configuration["SendGrid:FromEmail"] ?? "noreply@coverlettergen.com";
-            _fromName = configuration["SendGrid:FromName"] ?? "CoverLetterGen";
+            // In development, create a mock client that doesn't actually send emails
+            _sendGridClient = null;
         }
+        else
+        {
+            throw new Exception("SendGrid API key not configured");
+        }
+    }
+    else
+    {
+        _sendGridClient = new SendGridClient(apiKey);
+    }
+    
+    _configuration = configuration;
+    _fromEmail = configuration["SendGrid:FromEmail"] ?? "noreply@coverlettergen.com";
+    _fromName = configuration["SendGrid:FromName"] ?? "CoverLetterGen";
+}
 
         public async Task<bool> SendCoverLetterEmailAsync(string toEmail, string coverLetterContent, string jobTitle, string companyName)
+{
+    try
+    {
+        if (_sendGridClient == null)
         {
-            try
-            {
-                var subject = $"Your Cover Letter for {jobTitle} at {companyName}";
-                var htmlContent = CreateCoverLetterEmailTemplate(coverLetterContent, jobTitle, companyName);
-                var plainTextContent = CreatePlainTextCoverLetter(coverLetterContent, jobTitle, companyName);
-
-                var msg = MailHelper.CreateSingleEmail(
-                    new EmailAddress(_fromEmail, _fromName),
-                    new EmailAddress(toEmail),
-                    subject,
-                    plainTextContent,
-                    htmlContent
-                );
-
-                var response = await _sendGridClient.SendEmailAsync(msg);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                // Log the error (in production, use proper logging)
-                Console.WriteLine($"Error sending email: {ex.Message}");
-                return false;
-            }
+            // In development, just log that email would be sent
+            Console.WriteLine($"DEV: Would send cover letter email to {toEmail} for {jobTitle} at {companyName}");
+            return true;
         }
+
+        var subject = $"Your Cover Letter for {jobTitle} at {companyName}";
+        var htmlContent = CreateCoverLetterEmailTemplate(coverLetterContent, jobTitle, companyName);
+        var plainTextContent = CreatePlainTextCoverLetter(coverLetterContent, jobTitle, companyName);
+
+        var msg = MailHelper.CreateSingleEmail(
+            new EmailAddress(_fromEmail, _fromName),
+            new EmailAddress(toEmail),
+            subject,
+            plainTextContent,
+            htmlContent
+        );
+
+        var response = await _sendGridClient.SendEmailAsync(msg);
+        return response.IsSuccessStatusCode;
+    }
+    catch (Exception ex)
+    {
+        // Log the error (in production, use proper logging)
+        Console.WriteLine($"Error sending email: {ex.Message}");
+        return false;
+    }
+}
 
         public async Task<bool> SendWelcomeEmailAsync(string toEmail, string firstName)
+{
+    try
+    {
+        if (_sendGridClient == null)
         {
-            try
-            {
-                var subject = "Welcome to CoverLetterGen!";
-                var htmlContent = CreateWelcomeEmailTemplate(firstName);
-                var plainTextContent = CreatePlainTextWelcome(firstName);
-
-                var msg = MailHelper.CreateSingleEmail(
-                    new EmailAddress(_fromEmail, _fromName),
-                    new EmailAddress(toEmail),
-                    subject,
-                    plainTextContent,
-                    htmlContent
-                );
-
-                var response = await _sendGridClient.SendEmailAsync(msg);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending welcome email: {ex.Message}");
-                return false;
-            }
+            // In development, just log that email would be sent
+            Console.WriteLine($"DEV: Would send welcome email to {toEmail} for {firstName}");
+            return true;
         }
+
+        var subject = "Welcome to CoverLetterGen!";
+        var htmlContent = CreateWelcomeEmailTemplate(firstName);
+        var plainTextContent = CreatePlainTextWelcome(firstName);
+
+        var msg = MailHelper.CreateSingleEmail(
+            new EmailAddress(_fromEmail, _fromName),
+            new EmailAddress(toEmail),
+            subject,
+            plainTextContent,
+            htmlContent
+        );
+
+        var response = await _sendGridClient.SendEmailAsync(msg);
+        return response.IsSuccessStatusCode;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error sending welcome email: {ex.Message}");
+        return false;
+    }
+}
 
         public async Task<bool> SendProUpgradeEmailAsync(string toEmail, string firstName)
+{
+    try
+    {
+        if (_sendGridClient == null)
         {
-            try
-            {
-                var subject = "Welcome to CoverLetterGen Pro!";
-                var htmlContent = CreateProUpgradeEmailTemplate(firstName);
-                var plainTextContent = CreatePlainTextProUpgrade(firstName);
-
-                var msg = MailHelper.CreateSingleEmail(
-                    new EmailAddress(_fromEmail, _fromName),
-                    new EmailAddress(toEmail),
-                    subject,
-                    plainTextContent,
-                    htmlContent
-                );
-
-                var response = await _sendGridClient.SendEmailAsync(msg);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending pro upgrade email: {ex.Message}");
-                return false;
-            }
+            // In development, just log that email would be sent
+            Console.WriteLine($"DEV: Would send pro upgrade email to {toEmail} for {firstName}");
+            return true;
         }
+
+        var subject = "Welcome to CoverLetterGen Pro!";
+        var htmlContent = CreateProUpgradeEmailTemplate(firstName);
+        var plainTextContent = CreatePlainTextProUpgrade(firstName);
+
+        var msg = MailHelper.CreateSingleEmail(
+            new EmailAddress(_fromEmail, _fromName),
+            new EmailAddress(toEmail),
+            subject,
+            plainTextContent,
+            htmlContent
+        );
+
+        var response = await _sendGridClient.SendEmailAsync(msg);
+        return response.IsSuccessStatusCode;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error sending pro upgrade email: {ex.Message}");
+        return false;
+    }
+}
 
         private string CreateCoverLetterEmailTemplate(string coverLetterContent, string jobTitle, string companyName)
         {

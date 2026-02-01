@@ -26,18 +26,9 @@ namespace CoverLetterGen.Models
         public string Password { get; set; } = string.Empty;
     }
 
-    public class RefreshTokenRequest
-    {
-        [Required]
-        public string RefreshToken { get; set; } = string.Empty;
-    }
-
     public class AuthResponse
     {
-        public string Token { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
         public UserDto User { get; set; } = new();
-        public DateTime ExpiresAt { get; set; }
     }
 
     public class UserDto

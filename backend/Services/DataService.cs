@@ -75,6 +75,7 @@ namespace CoverLetterGen.Services
             return await _context.CoverLetters
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.CreatedAt)
+                .AsNoTracking() // Prevent tracking to avoid circular references
                 .ToListAsync();
         }
 
@@ -82,6 +83,7 @@ namespace CoverLetterGen.Services
         {
             return await _context.CoverLetters
                 .Include(c => c.User)
+                .AsNoTracking() // Prevent tracking to avoid circular references
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 

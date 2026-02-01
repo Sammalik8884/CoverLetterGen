@@ -1,17 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useContext } from 'react'
+import { AuthContext } from '../contexts/AuthContext'
 
 function Navigation() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const { isAuthenticated, logout } = useContext(AuthContext)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    setIsAuthenticated(!!localStorage.getItem('authToken'))
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    setIsAuthenticated(false)
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 
