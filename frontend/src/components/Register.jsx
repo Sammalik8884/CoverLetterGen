@@ -269,23 +269,28 @@ function Register() {
           )}
         </button>
 
-        <div className="mt-6 flex flex-col items-center">
-          <div className="relative w-full mb-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+        {/* Google Login Section - Only show if configured */}
+        {(import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+          import.meta.env.VITE_GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID_HERE" &&
+          import.meta.env.VITE_GOOGLE_CLIENT_ID !== "PLACEHOLDER_CLIENT_ID_REPLACE_ME") && (
+            <div className="mt-6 flex flex-col items-center">
+              <div className="relative w-full mb-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme={document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline'}
+                shape="pill"
+              />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
-            </div>
-          </div>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            useOneTap
-            theme={document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline'}
-            shape="pill"
-          />
-        </div>
+          )}
 
         {/* Additional Info */}
         <div className="mt-6 text-center">
