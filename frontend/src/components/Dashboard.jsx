@@ -41,9 +41,9 @@ function Dashboard() {
 
   const fetchCoverLetters = async () => {
     try {
-      const response = await axios.get(`${API_URL}/coverletters`, { 
+      const response = await axios.get(`${API_URL}/coverletters`, {
         withCredentials: true,
-        headers: getApiHeaders() 
+        headers: getApiHeaders()
       })
       setCoverLetters(response.data)
       setIsDemoMode(false)
@@ -64,9 +64,9 @@ function Dashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/analytics`, { 
+      const response = await axios.get(`${API_URL}/analytics`, {
         withCredentials: true,
-        headers: getApiHeaders() 
+        headers: getApiHeaders()
       })
       setAnalytics(response.data)
     } catch (err) {
@@ -78,9 +78,9 @@ function Dashboard() {
     if (!confirm('Are you sure you want to delete this cover letter?')) return
 
     try {
-      await axios.delete(`${API_URL}/coverletters/${id}`, { 
+      await axios.delete(`${API_URL}/coverletters/${id}`, {
         withCredentials: true,
-        headers: getApiHeaders() 
+        headers: getApiHeaders()
       })
       setCoverLetters(coverLetters.filter(letter => letter.id !== id))
       fetchAnalytics() // Refresh analytics
@@ -95,20 +95,20 @@ function Dashboard() {
     try {
       // Show loading state
       showToastMessage('Generating PDF...', 'info')
-      
+
       const response = await axios.get(`${API_URL}/coverletters/${id}/pdf`, {
         withCredentials: true,
         headers: getApiHeaders(),
         responseType: 'blob',
         timeout: 30000 // 30 second timeout for PDF generation
       })
-      
+
       // Check if response is actually a PDF
       const contentType = response.headers['content-type']
       if (!contentType || !contentType.includes('application/pdf')) {
         throw new Error('Invalid response format - expected PDF')
       }
-      
+
       // Create blob and download
       const blob = new Blob([response.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
@@ -120,11 +120,11 @@ function Dashboard() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
-      
+
       showToastMessage('PDF downloaded successfully!', 'success')
     } catch (err) {
       console.error('Error downloading PDF:', err)
-      
+
       let errorMessage = 'Failed to download PDF'
       if (err.response?.status === 404) {
         errorMessage = 'Cover letter not found'
@@ -135,7 +135,7 @@ function Dashboard() {
       } else if (err.response?.status >= 500) {
         errorMessage = 'Server error. Please try again later.'
       }
-      
+
       setError(errorMessage)
       showToastMessage(errorMessage, 'error')
     }
@@ -143,12 +143,12 @@ function Dashboard() {
 
   const shareCoverLetter = async (id) => {
     try {
-      const response = await axios.post(`${API_URL}/coverletters/${id}/share`, {}, { 
+      const response = await axios.post(`${API_URL}/coverletters/${id}/share`, {}, {
         withCredentials: true,
-        headers: getApiHeaders() 
+        headers: getApiHeaders()
       })
       const shareUrl = response.data.shareUrl
-      
+
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl)
       showToastMessage('Share link copied to clipboard!', 'success')
@@ -165,9 +165,9 @@ function Dashboard() {
 
       await axios.post(`${API_URL}/coverletters/${id}/send-email`, {
         recipientEmail
-      }, { 
+      }, {
         withCredentials: true,
-        headers: getApiHeaders() 
+        headers: getApiHeaders()
       })
       showToastMessage('Cover letter sent successfully!', 'success')
     } catch (err) {
@@ -226,11 +226,10 @@ function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Toast Notification */}
       {showToast && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
-          toastType === 'success' 
-            ? 'bg-green-500 text-white' 
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${toastType === 'success'
+            ? 'bg-green-500 text-white'
             : 'bg-red-500 text-white'
-        }`} role="alert" aria-live="assertive">
+          }`} role="alert" aria-live="assertive">
           {toastMessage}
         </div>
       )}
@@ -264,38 +263,13 @@ function Dashboard() {
       )}
 
       {/* Payment Modal */}
-      <PaymentModal 
+      <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         plan="monthly"
       />
 
-      {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
-              <img src="/logo.svg" alt="CoverLetterGen Logo" className="w-8 h-8" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">CoverLetterGen</span>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                Home
-              </Link>
-              <Link to="/generator" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                Generator
-              </Link>
-              {isDemoMode && (
-                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                  Demo Mode
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         {/* Analytics Section */}
         {analytics && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
