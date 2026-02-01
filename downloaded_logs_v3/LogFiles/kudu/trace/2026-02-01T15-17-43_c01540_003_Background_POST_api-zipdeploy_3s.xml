@@ -1,0 +1,44 @@
+<step title="BackgroundTrace" date="2026-02-01T15:17:43.052" instance="c01540" url="/api/zipdeploy" method="POST" >
+  <step title="Cleanup Xml Logs" date="2026-02-01T15:17:43.083" /><!-- duration: 16ms -->
+  <step title="Updating shutdown sentinel last write time" date="2026-02-01T15:17:43.114" SemaphoreCount="7" /><!-- duration: 16ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2026-02-01T15:17:43.130" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2026-02-01T15:17:43.161" /><!-- duration: 63ms -->
+  <step title="Performing fetch based deployment" date="2026-02-01T15:17:43.239" >
+    <step title="Fetching changes." date="2026-02-01T15:17:43.333" /><!-- duration: 16ms -->
+    <step title="Starting LocalZipHandler" date="2026-02-01T15:17:43.364" /><!-- duration: 0ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0ymfabii.zip (30.06 MB) to C:\local\Temp\zipdeploy\extracted" date="2026-02-01T15:17:43.429" /><!-- duration: 0ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0ymfabii.zip (30.06 MB) to C:\local\Temp\zipdeploy\extracted" date="2026-02-01T15:17:43.443" >
+      <step title="Extracting 235 entries to C:\local\Temp\zipdeploy\extracted directory" date="2026-02-01T15:17:43.459" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\- Copy.dockerignore ..." date="2026-02-01T15:17:43.474" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.dockerignore ..." date="2026-02-01T15:17:43.505" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\AppDbContext.cs ..." date="2026-02-01T15:17:43.521" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\appsettings.Development.json ..." date="2026-02-01T15:17:43.537" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\appsettings.json ..." date="2026-02-01T15:17:43.552" /><!-- duration: 16ms -->
+        <step title="Omitting extracting file traces ..." date="2026-02-01T15:17:43.568" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\Services\DataService.cs ..." date="2026-02-01T15:17:44.740" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\Services\EmailService.cs ..." date="2026-02-01T15:17:44.756" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\Services\PaymentService.cs ..." date="2026-02-01T15:17:44.771" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\Tests\PaymentFlowTest.cs ..." date="2026-02-01T15:17:44.787" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\Tests\Tests.csproj ..." date="2026-02-01T15:17:44.802" /><!-- duration: 16ms -->
+      </step><!-- duration: 1359ms -->
+    </step><!-- duration: 1391ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2026-02-01T15:17:44.849" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:03f286fa130b4d7a9b2a675815b800d0)" date="2026-02-01T15:17:44.865" >
+      <step title="Collecting changeset information" date="2026-02-01T15:17:44.896" /><!-- duration: 62ms -->
+      <step title="Updating submodules" date="2026-02-01T15:17:44.959" >
+        <step title="Updating submodules." date="2026-02-01T15:17:45.037" /><!-- duration: 16ms -->
+      </step><!-- duration: 94ms -->
+      <step title="Preparing deployment for commit id &apos;03f286fa13&apos;." date="2026-02-01T15:17:45.146" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2026-02-01T15:17:45.224" >
+        <step title="UseMSBuild16: True" date="2026-02-01T15:17:45.240" /><!-- duration: 16ms -->
+      </step><!-- duration: 63ms -->
+      <step title="Unable to determine which project file to build. C:\local\Temp\zipdeploy\extracted\backend.csproj, C:\local\Temp\zipdeploy\extracted\backend.Tests.csproj, C:\local\Temp\zipdeploy\extracted\Tests\Tests.csproj. DEPLOYMENTINFO: deploymentPath = ZipDeploy. Extract zip. Remote build. , deployer = ZipDeploy, os = windows, sku = Free, siteName = coverlettergen-backend, siteHostName = coverlettergen-backend.azurewebsites.net, deploymentStatus = Error" date="2026-02-01T15:17:45.302" /><!-- duration: 0ms -->
+    </step><!-- duration: 594ms -->
+    <step title="Error occurred" date="2026-02-01T15:17:45.459" type="error" text="Unable to determine which project file to build. C:\local\Temp\zipdeploy\extracted\backend.csproj, C:\local\Temp\zipdeploy\extracted\backend.Tests.csproj, C:\local\Temp\zipdeploy\extracted\Tests\Tests.csproj." stackTrace="   at Kudu.Core.Deployment.Generator.SiteBuilderFactory.ResolveProject(String repositoryRoot, String targetPath, IDeploymentSettingsManager perDeploymentSettings, IFileFinder fileFinder, Boolean tryWebSiteProject, SearchOption searchOption, Boolean specificConfiguration)
+   at Kudu.Core.Deployment.Generator.SiteBuilderFactory.CreateBuilder(ITracer tracer, ILogger logger, IDeploymentSettingsManager settings, IRepository repository, DeploymentInfoBase deploymentInfo)
+   at Kudu.Core.Deployment.DeploymentManager.&lt;Build&gt;d__38.MoveNext()" /><!-- duration: 16ms -->
+    <step title="Deployment Failed. DEPLOYMENTINFO: deploymentPath = ZipDeploy. Extract zip. Remote build. , deployer = ZipDeploy, os = windows, sku = Free, siteName = coverlettergen-backend, siteHostName = coverlettergen-backend.azurewebsites.net, deploymentStatus = Failed" date="2026-02-01T15:17:45.490" /><!-- duration: 16ms -->
+  </step><!-- duration: 2344ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2026-02-01T15:17:45.599" /><!-- duration: 16ms -->
+  <step title="Deleting shutdown sentinel file" date="2026-02-01T15:17:45.631" SemaphoreCount="8" /><!-- duration: 0ms -->
+</step><!-- duration: 2595ms -->

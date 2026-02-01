@@ -9,6 +9,7 @@ namespace CoverLetterGen.Services
         Task<bool> SendCoverLetterEmailAsync(string toEmail, string coverLetterContent, string jobTitle, string companyName);
         Task<bool> SendWelcomeEmailAsync(string toEmail, string firstName);
         Task<bool> SendProUpgradeEmailAsync(string toEmail, string firstName);
+        Task<bool> SendPasswordResetEmailAsync(string toEmail, string resetLink);
     }
 
     public class EmailService : IEmailService
@@ -144,6 +145,47 @@ namespace CoverLetterGen.Services
         return false;
     }
 }
+
+        public async Task<bool> SendPasswordResetEmailAsync(string toEmail, string resetLink)
+        {
+            try
+            {
+                if (_sendGridClient == null)
+                {
+                    Console.WriteLine($"DEV: Would send password reset email to {toEmail}. Link: {resetLink}");
+                    return true;
+                }
+
+                var subject = "Reset Your Password";
+                var htmlContent = $@"
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Password Reset Request</h2>
+    <p>We received a request to reset your password. Click the link below to set a new password:</p>
+    <p><a href='{resetLink}'>Reset Password</a></p>
+    <p>If you didn't request this, you can safely ignore this email.</p>
+</body>
+</html>";
+                var plainTextContent = $"Reset your password by visiting: {resetLink}";
+
+                var msg = MailHelper.CreateSingleEmail(
+                    new EmailAddress(_fromEmail, _fromName),
+                    new EmailAddress(toEmail),
+                    subject,
+                    plainTextContent,
+                    htmlContent
+                );
+
+                var response = await _sendGridClient.SendEmailAsync(msg);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending password reset email: {ex.Message}");
+                return false;
+            }
+        }
 
         private string CreateCoverLetterEmailTemplate(string coverLetterContent, string jobTitle, string companyName)
         {

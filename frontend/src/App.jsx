@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard'
 import LandingPage from './components/LandingPage'
 import Login from './components/Login'
 import Register from './components/Register'
+import ForgotPassword from './components/ForgotPassword'
+import ResetPassword from './components/ResetPassword'
 import Contact from './components/Contact'
 import HelpCenter from './components/HelpCenter'
 import PrivacyPolicy from './components/PrivacyPolicy'
@@ -60,6 +62,8 @@ function AppContent() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

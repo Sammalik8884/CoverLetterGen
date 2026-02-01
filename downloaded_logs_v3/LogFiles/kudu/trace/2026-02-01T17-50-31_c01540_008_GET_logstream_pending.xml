@@ -1,0 +1,6 @@
+<step title="Incoming Request" date="2026-02-01T17:50:31.720" instance="c01540" url="/logstream" method="GET" type="request" pid="10108,2,35" Accept-Encoding="identity" Authorization="Bea..." Host="coverlettergen-backend.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (MSI)" x-ms-client-request-id="79124c8f-ff96-11f0-8a8c-c85b768a574f" X-ARR-LOG-ID="79124c8f-ff96-11f0-8a8c-c85b768a574f" CLIENT-IP="182.185.152.21:54121" X-SITE-DEPLOYMENT-ID="coverlettergen-backend" WAS-DEFAULT-HOSTNAME="coverlettergen-backend.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" >
+  <step title="Cleanup Xml Logs" date="2026-02-01T17:50:31.720" /><!-- duration: 16ms -->
+  <step title="LogStreamHandler.BeginProcessRequest" date="2026-02-01T17:50:31.751" >
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; acquired" date="2026-02-01T17:50:31.798" /><!-- duration: 16ms -->
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; released" date="2026-02-01T17:50:31.845" /><!-- duration: 16ms -->
+  </step><!-- duration: 125ms -->

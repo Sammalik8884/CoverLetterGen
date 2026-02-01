@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useContext } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { AuthContext } from '../contexts/AuthContext'
+import { GoogleLogin } from '@react-oauth/google'
 
 function Register() {
   const [firstName, setFirstName] = useState('')
@@ -12,7 +13,7 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const firstNameRef = useRef(null)
-  const { register, error, clearError } = useContext(AuthContext)
+  const { register, googleLogin, error, clearError } = useContext(AuthContext)
 
   useEffect(() => {
     firstNameRef.current?.focus()
@@ -23,59 +24,73 @@ function Register() {
   // Validate form fields
   const validateForm = () => {
     const errors = {}
-    
+
     if (!firstName.trim()) {
       errors.firstName = 'First name is required'
     } else if (firstName.trim().length < 2) {
       errors.firstName = 'First name must be at least 2 characters'
     }
-    
+
     if (!lastName.trim()) {
       errors.lastName = 'Last name is required'
     } else if (lastName.trim().length < 2) {
       errors.lastName = 'Last name must be at least 2 characters'
     }
-    
+
     if (!email.trim()) {
       errors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       errors.email = 'Please enter a valid email address'
     }
-    
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
     if (!password.trim()) {
       errors.password = 'Password is required'
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters'
+    } else if (!passwordRegex.test(password)) {
+      errors.password = 'Password must be 8+ chars and include uppercase, lowercase, number, and symbol.'
     }
-    
+
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     // Clear previous errors
     setValidationErrors({})
     clearError()
-    
+
     // Validate form
     if (!validateForm()) {
       return
     }
-    
+
     setLoading(true)
-    
+
     // Add a small delay to prevent rapid-fire requests
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     const result = await register({ firstName, lastName, email, password })
-    
+
     if (result.success) {
       navigate('/dashboard')
     }
-    
+
     setLoading(false)
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (credentialResponse.credential) {
+      const result = await googleLogin(credentialResponse.credential)
+      if (result.success) {
+        navigate('/dashboard')
+      }
+    }
+  }
+
+  const handleGoogleError = () => {
+    console.error('Google Signup Failed')
   }
 
   const handleFieldChange = (field, value) => {
@@ -93,7 +108,7 @@ function Register() {
         setPassword(value)
         break
     }
-    
+
     // Clear validation error for this field
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }))
@@ -104,23 +119,22 @@ function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md" aria-label="Registration form">
         <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Create Account</h2>
-        
+
         {/* First Name Field */}
         <div className="mb-4">
           <label htmlFor="firstName" className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
             First Name
           </label>
-          <input 
-            id="firstName" 
-            ref={firstNameRef} 
-            type="text" 
-            value={firstName} 
+          <input
+            id="firstName"
+            ref={firstNameRef}
+            type="text"
+            value={firstName}
             onChange={e => handleFieldChange('firstName', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-              validationErrors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${validationErrors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder="Enter your first name"
-            aria-required="true" 
+            aria-required="true"
             aria-label="First name"
             disabled={loading}
           />
@@ -136,16 +150,15 @@ function Register() {
           <label htmlFor="lastName" className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
             Last Name
           </label>
-          <input 
-            id="lastName" 
-            type="text" 
-            value={lastName} 
+          <input
+            id="lastName"
+            type="text"
+            value={lastName}
             onChange={e => handleFieldChange('lastName', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-              validationErrors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${validationErrors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder="Enter your last name"
-            aria-required="true" 
+            aria-required="true"
             aria-label="Last name"
             disabled={loading}
           />
@@ -161,16 +174,15 @@ function Register() {
           <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
             Email Address
           </label>
-          <input 
-            id="email" 
-            type="email" 
-            value={email} 
+          <input
+            id="email"
+            type="email"
+            value={email}
             onChange={e => handleFieldChange('email', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-              validationErrors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${validationErrors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder="Enter your email"
-            aria-required="true" 
+            aria-required="true"
             aria-label="Email address"
             disabled={loading}
           />
@@ -187,16 +199,15 @@ function Register() {
             Password
           </label>
           <div className="relative">
-            <input 
-              id="password" 
-              type={showPassword ? "text" : "password"} 
-              value={password} 
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
               onChange={e => handleFieldChange('password', e.target.value)}
-              className={`w-full px-4 py-3 pr-12 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-                validationErrors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
-              placeholder="Create a password (min 6 characters)"
-              aria-required="true" 
+              className={`w-full px-4 py-3 pr-12 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${validationErrors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+                }`}
+              placeholder="Create a password (min 8 chars, 1 Upper, 1 lower, 1 number, 1 symbol)"
+              aria-required="true"
               aria-label="Password"
               disabled={loading}
             />
@@ -238,11 +249,11 @@ function Register() {
         )}
 
         {/* Submit Button */}
-        <button 
-          type="submit" 
-          disabled={loading} 
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" 
-          aria-busy={loading} 
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-busy={loading}
           aria-disabled={loading}
         >
           {loading ? (
@@ -257,6 +268,24 @@ function Register() {
             'Create Account'
           )}
         </button>
+
+        <div className="mt-6 flex flex-col items-center">
+          <div className="relative w-full mb-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+            theme={document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline'}
+            shape="pill"
+          />
+        </div>
 
         {/* Additional Info */}
         <div className="mt-6 text-center">

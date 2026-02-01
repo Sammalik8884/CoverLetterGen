@@ -1,0 +1,17 @@
+<step title="Incoming Request" date="2026-02-01T15:24:27.406" instance="c01540" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="12596,2,33" Cache-Control="no-cache" Content-Length="30940366" Content-Type="application/octet-stream" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bea..." Host="coverlettergen-backend.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (MSI)" x-ms-client-request-id="141f3661-ff82-11f0-8ac7-c85b768a574f" X-ARR-LOG-ID="141f3661-ff82-11f0-8ac7-c85b768a574f" CLIENT-IP="182.185.152.21:57133" X-SITE-DEPLOYMENT-ID="coverlettergen-backend" WAS-DEFAULT-HOSTNAME="coverlettergen-backend.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" >
+  <step title="Cleanup Xml Logs" date="2026-02-01T15:24:27.422" /><!-- duration: 16ms -->
+  <step title="ZipPushDeploy" date="2026-02-01T15:24:27.453" >
+    <step title="ZipDeploy. Extract zip. Remote build. " date="2026-02-01T15:24:27.453" /><!-- duration: 16ms -->
+    <step title="Starting PushDeployAsync" date="2026-02-01T15:24:27.484" /><!-- duration: 0ms -->
+    <step title="Updating shutdown sentinel last write time" date="2026-02-01T15:24:27.515" SemaphoreCount="7" /><!-- duration: 0ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2026-02-01T15:24:27.531" /><!-- duration: 16ms -->
+    <step title="Saving request content to C:\local\Temp\zipdeploy\v2i2miiw.zip" date="2026-02-01T15:24:27.547" >
+      <step title="Total 30,940,366 bytes written to C:\local\Temp\zipdeploy\v2i2miiw.zip" date="2026-02-01T15:24:43.851" /><!-- duration: 16ms -->
+    </step><!-- duration: 16336ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2026-02-01T15:24:43.898" /><!-- duration: 0ms -->
+    <step title="Deleting shutdown sentinel file" date="2026-02-01T15:24:43.914" SemaphoreCount="8" /><!-- duration: 16ms -->
+    <step title="Starting FetchDeploy" date="2026-02-01T15:24:43.929" /><!-- duration: 16ms -->
+    <step title="Start deployment in the background" date="2026-02-01T15:24:43.961" /><!-- duration: 141ms -->
+  </step><!-- duration: 16664ms -->
+  <step title="Outgoing response" date="2026-02-01T15:24:44.133" type="response" statusCode="202" statusText="Accepted" Server="Microsoft-IIS/10.0" x-ms-request-id="141f3661-ff82-11f0-8ac7-c85b768a574f" Retry-After="30" Cache-Control="private" X-AspNet-Version="4.0.30319" Location="https://coverlettergen-backend.scm.azurewebsites.net/api/deployments/latest?deployer=ZipDeploy&amp;time=2026-02-01_15-24-44Z" /><!-- duration: 0ms -->
+</step><!-- duration: 16742ms -->

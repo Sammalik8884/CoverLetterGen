@@ -327,6 +327,101 @@ app.MapPost("/auth/logout", async (HttpContext http) =>
     await http.Response.WriteAsJsonAsync(new { success = true, message = "Logout successful" });
 });
 
+// New Auth Endpoints
+app.MapPost("/auth/google", async (HttpContext http, IAuthService authService) =>
+{
+    try
+    {
+        var request = await http.Request.ReadFromJsonAsync<GoogleLoginRequest>();
+        if (request == null || string.IsNullOrEmpty(request.Credential))
+        {
+            http.Response.StatusCode = 400;
+            await http.Response.WriteAsJsonAsync(new { error = "Invalid request." });
+            return;
+        }
+
+        var response = await authService.GoogleLoginAsync(request.Credential);
+
+        // Set authentication cookie
+        var claims = new List<System.Security.Claims.Claim>
+        {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, response.User.Id.ToString()),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, response.User.Email),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, $"{response.User.FirstName} {response.User.LastName}")
+        };
+
+        var identity = new System.Security.Claims.ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+
+        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTime.UtcNow.AddDays(30)
+        });
+
+        await http.Response.WriteAsJsonAsync(new { 
+            success = true, 
+            user = response.User,
+            message = "Google login successful"
+        });
+    }
+    catch (Exception ex)
+    {
+        http.Response.StatusCode = 401;
+        await http.Response.WriteAsJsonAsync(new { error = ex.Message });
+        Log.Error(ex, "Google Login failed: {Message}", ex.Message);
+    }
+});
+
+app.MapPost("/auth/forgot-password", async (HttpContext http, IAuthService authService) =>
+{
+    try 
+    {
+        var request = await http.Request.ReadFromJsonAsync<ForgotPasswordRequest>();
+        if (request == null || string.IsNullOrEmpty(request.Email))
+        {
+             http.Response.StatusCode = 400;
+             await http.Response.WriteAsJsonAsync(new { error = "Email is required." });
+             return;
+        }
+
+        await authService.ForgotPasswordAsync(request.Email);
+        
+        // Always return success to prevent timing attacks / user enumeration
+        await http.Response.WriteAsJsonAsync(new { success = true, message = "If the email exists, a reset link has been sent." });
+    }
+    catch (Exception ex)
+    {
+        http.Response.StatusCode = 500;
+        await http.Response.WriteAsJsonAsync(new { error = "An error occurred." });
+        Log.Error(ex, "Forgot Password failed: {Message}", ex.Message);
+    }
+});
+
+app.MapPost("/auth/reset-password", async (HttpContext http, IAuthService authService) =>
+{
+    try
+    {
+        var request = await http.Request.ReadFromJsonAsync<ResetPasswordRequest>();
+        if (request == null || string.IsNullOrEmpty(request.Token) || string.IsNullOrEmpty(request.NewPassword))
+        {
+            http.Response.StatusCode = 400;
+            await http.Response.WriteAsJsonAsync(new { error = "Token and new password are required." });
+            return;
+        }
+
+        await authService.ResetPasswordAsync(request.Token, request.NewPassword);
+        
+        await http.Response.WriteAsJsonAsync(new { success = true, message = "Password reset successful." });
+    }
+    catch (Exception ex)
+    {
+        http.Response.StatusCode = 400;
+        await http.Response.WriteAsJsonAsync(new { error = ex.Message });
+        Log.Error(ex, "Reset Password failed: {Message}", ex.Message);
+    }
+});
+
 app.MapGet("/auth/me", async (HttpContext http, IAuthService authService) =>
 {
     var user = await GetUserFromCookieAsync(http);

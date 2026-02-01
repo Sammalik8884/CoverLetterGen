@@ -23,6 +23,11 @@ namespace CoverLetterGen.Models
         public string? ProSubscriptionId { get; set; }
         public DateTime? ProExpiresAt { get; set; }
         
+        // Auth enhancements
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+        public string? GoogleSubjectId { get; set; }
+        
         // Navigation property
         public List<CoverLetter> CoverLetters { get; set; } = new();
     }

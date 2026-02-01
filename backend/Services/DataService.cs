@@ -20,6 +20,10 @@ namespace CoverLetterGen.Services
         Task SaveRefreshTokenAsync(string refreshToken, string email);
         Task<string?> GetEmailByRefreshTokenAsync(string refreshToken);
         Task RemoveRefreshTokenAsync(string refreshToken);
+        
+        // Auth enhancements
+        Task<User?> GetUserByResetTokenAsync(string token);
+        Task<User?> GetUserByGoogleSubjectIdAsync(string subjectId);
     }
 
     public class DataService : IDataService
@@ -171,6 +175,17 @@ namespace CoverLetterGen.Services
                 File.WriteAllLines(RefreshTokenFile, lines);
             }
             return Task.CompletedTask;
+        }
+        public async Task<User?> GetUserByResetTokenAsync(string token)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.ResetToken == token && u.ResetTokenExpires > DateTime.UtcNow);
+        }
+
+        public async Task<User?> GetUserByGoogleSubjectIdAsync(string subjectId)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.GoogleSubjectId == subjectId);
         }
     }
 } 

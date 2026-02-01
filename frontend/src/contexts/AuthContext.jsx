@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
         const response = await axios.get(`${API_URL}/auth/validate`, {
           withCredentials: true // Important for cookies
         })
-        
+
         if (response.data.valid) {
           setIsAuthenticated(true)
           setUser(response.data.user)
@@ -46,16 +46,16 @@ export const AuthProvider = ({ children }) => {
     try {
       // Add a minimum delay to prevent rapid-fire requests and improve UX
       const minDelay = new Promise(resolve => setTimeout(resolve, 800))
-      
+
       const response = await axios.post(`${API_URL}/auth/login`, { email, password }, {
         withCredentials: true, // Important for cookies
         headers: getApiHeaders(false),
         timeout: 5000 // 5 second timeout
       })
-      
+
       // Wait for minimum delay
       await minDelay
-      
+
       if (response.data.success) {
         setIsAuthenticated(true)
         setUser(response.data.user)
@@ -67,9 +67,9 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       // Wait for minimum delay even on error
       await new Promise(resolve => setTimeout(resolve, 800))
-      
+
       let errorMessage = 'Login failed. Please try again.'
-      
+
       if (err.response?.status === 401) {
         errorMessage = 'Invalid credentials'
       } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
           }
         })
       }
-      
+
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
         withCredentials: true, // Important for cookies
         headers: getApiHeaders(false)
       })
-      
+
       if (response.data.success) {
         setIsAuthenticated(true)
         setUser(response.data.user)
@@ -142,6 +142,45 @@ export const AuthProvider = ({ children }) => {
     setError('')
   }
 
+  const forgotPassword = async (email) => {
+    try {
+      await axios.post(`${API_URL}/auth/forgot-password`, { email })
+      return { success: true, message: 'Check your email for reset instructions.' }
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Failed to send reset email.' }
+    }
+  }
+
+  const resetPassword = async (token, newPassword) => {
+    try {
+      await axios.post(`${API_URL}/auth/reset-password`, { token, newPassword: newPassword })
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Failed to reset password.' }
+    }
+  }
+
+  const googleLogin = async (credential) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await axios.post(`${API_URL}/auth/google`, { credential }, {
+        withCredentials: true
+      })
+      if (response.data.success) {
+        setIsAuthenticated(true)
+        setUser(response.data.user)
+        return { success: true }
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Google login failed')
+      return { success: false, error: err.response?.data?.error }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
   const value = {
     isAuthenticated,
     user,
@@ -150,7 +189,10 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    clearError
+    clearError,
+    forgotPassword,
+    resetPassword,
+    googleLogin
   }
 
   return (
