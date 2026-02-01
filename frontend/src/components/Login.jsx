@@ -212,6 +212,7 @@ return (
       </button>
 
       {/* Google Login Section - Only show if configured */}
+      {/* Google Login Section - Only show if configured */}
       {(import.meta.env.VITE_GOOGLE_CLIENT_ID &&
         import.meta.env.VITE_GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID_HERE" &&
         import.meta.env.VITE_GOOGLE_CLIENT_ID !== "PLACEHOLDER_CLIENT_ID_REPLACE_ME") && (
