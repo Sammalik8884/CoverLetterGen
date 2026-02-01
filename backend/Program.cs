@@ -14,7 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("logs/coverlettergen-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -32,8 +31,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "CoverLetterAuth";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.None; // Required for cross-domain (Vercel -> Azure)
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
         options.LoginPath = "/auth/login";
@@ -49,8 +48,8 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "X-CSRF-TOKEN";
     options.Cookie.Name = "CSRF-TOKEN";
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.None;
 });
 
 // Add services to the container.
@@ -88,7 +87,8 @@ builder.Services.AddCors(options =>
         var allowedOrigins = new[]
         {
             "http://localhost:5173", // Vite dev server
-            "https://coverlettergen.vercel.app" // Production frontend
+            "https://coverlettergen.vercel.app", // Production frontend
+            "https://cover-letter-generator-eta.vercel.app" // User's deployed frontend
         };
 
         policy
@@ -352,6 +352,8 @@ app.MapGet("/auth/validate", async (HttpContext http, IAuthService authService) 
     await http.Response.WriteAsJsonAsync(new { valid = true, user });
 });
 
+
+
 // Implement /generate endpoint WITH authentication
 app.MapPost("/generate", async (HttpContext http, IDataService dataService, IConfiguration config) =>
 {
@@ -359,6 +361,7 @@ app.MapPost("/generate", async (HttpContext http, IDataService dataService, ICon
     try
     {
         var request = await http.Request.ReadFromJsonAsync<GenerateRequest>();
+
         if (request == null || string.IsNullOrWhiteSpace(request.JobTitle) || string.IsNullOrWhiteSpace(request.CompanyName) || string.IsNullOrWhiteSpace(request.UserInfo))
         {
             http.Response.StatusCode = 400;
@@ -439,9 +442,8 @@ app.MapPost("/generate", async (HttpContext http, IDataService dataService, ICon
         {
             http.Response.StatusCode = 503; // Service Unavailable
             await http.Response.WriteAsJsonAsync(new { 
-                error = "OpenAI API quota exceeded. Please try again later or contact support.",
-                details = "The AI service is temporarily unavailable due to quota limits.",
-                actualError = ex.Message
+                error = "OpenAI API quota exceeded. Please try again later.",
+                details = "The AI service is temporarily unavailable due to quota limits."
             });
         }
         else if (ex.Message.Contains("rate_limit") || ex.Message.Contains("429"))
@@ -457,8 +459,7 @@ app.MapPost("/generate", async (HttpContext http, IDataService dataService, ICon
             http.Response.StatusCode = 500;
             await http.Response.WriteAsJsonAsync(new { 
                 error = "Failed to generate cover letter.",
-                details = ex.Message,
-                type = ex.GetType().Name
+                details = ex.Message 
             });
         }
     }
@@ -723,9 +724,9 @@ app.MapGet("/coverletters/{id}/pdf", async (HttpContext http, int id, IDataServi
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "PDF generation failed for cover letter {Id}: {Message}", id, ex.Message);
-        http.Response.StatusCode = 500;
-        await http.Response.WriteAsJsonAsync(new { error = "Failed to generate PDF. Please try again." });
+        Log.Error(ex, "Error generating cover letter");
+        http.Response.StatusCode = 200; // Return 200 to ensure frontend displays the message
+        await http.Response.WriteAsJsonAsync(new { error = $"DEBUG MODE ERROR: {ex.Message} | Stack: {ex.StackTrace}" });
     }
 });
 

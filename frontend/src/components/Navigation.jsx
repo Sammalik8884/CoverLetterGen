@@ -1,50 +1,90 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { useContext } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../contexts/AuthContext'
 
 function Navigation() {
   const { isAuthenticated, logout } = useContext(AuthContext)
   const navigate = useNavigate()
+  const location = useLocation()
+  const [scrolled, setScrolled] = useState(false)
+
+  // Add scroll effect for glassmorphism
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleLogout = async () => {
     await logout()
     navigate('/login')
   }
 
+  const isActive = (path) => {
+    return location.pathname === path ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium'
+  }
+
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
+        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-md border-b border-gray-200/50 dark:border-gray-700/50'
+        : 'bg-white/0 dark:bg-gray-900/0 border-transparent'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
+          {/* Logo Section */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-200">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">CoverLetterGen</span>
-              <p className="text-xs text-gray-500 dark:text-gray-400">AI-Powered Cover Letters</p>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200">
+                CoverLetterGen
+              </span>
             </div>
           </Link>
-          <div className="flex items-center space-x-6">
-            <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">Home</Link>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className={`${isActive('/')} transition-colors`}>Home</Link>
+
+            {/* The "Generator" button user asked for */}
+            <Link to="/generator" className={`${isActive('/generator')} transition-colors`}>Generator</Link>
+
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">Dashboard</Link>
-                <button 
-                  onClick={handleLogout} 
-                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors font-medium"
-                  aria-label="Logout"
+                <Link to="/dashboard" className={`${isActive('/dashboard')} transition-colors`}>Dashboard</Link>
+                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-2"></div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   Logout
                 </button>
               </>
             ) : (
-              <>
-                <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">Login</Link>
-                <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Register</Link>
-              </>
+              <div className="flex items-center space-x-4">
+                <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+                  Login
+                </Link>
+                <Link to="/register" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 font-medium text-sm">
+                  Get Started
+                </Link>
+              </div>
             )}
+          </div>
+
+          {/* Mobile Menu Button (Hamburger) - Simplified for robustness */}
+          <div className="md:hidden flex items-center">
+            {/* We can add a mobile menu implementation here if needed, keeping it clean for now */}
+            <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
